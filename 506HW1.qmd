@@ -1,0 +1,316 @@
+---
+title: "506HW1"
+author: "Hongxuan An"
+format: html
+editor: visual
+---
+
+# 506HW1
+
+GitHub: https://github.com/ahongxuan/506.git
+
+## Problem 1 Wine data
+
+```{r}
+wine <- read.csv("~/Documents/Umich/stats 506/wine/wine.data", header = FALSE)
+names(wine) <- c("class", "Alcohol", "Malic acid", "Ash", "Alcalinity of ash", "Magnesium", "Total phenols", "Flavanoids", "Nonflavanoid phenols", "Proanthocyanins", "Color intensity", "Hue", "OD280/OD315 of diluted wines", "Proline")
+
+head(wine, 5)
+```
+
+part (c)
+
+Q1: The wine with the highest alcohol content belongs to which class?
+
+```{r}
+max_al <- max(wine$Alcohol)
+max_al
+
+max_al_indx <- which(wine$Alcohol == max_al)
+
+max_data <- wine[max_al_indx, ]
+max_class <- max_data$class
+max_class
+```
+
+The highest alcohol content belongs to class 1.
+
+Q2: The wine with the lowest alcohol content belongs to which class?
+
+```{r}
+min_al <- min(wine$Alcohol)
+min_al
+
+min_al_indx <- which(wine$Alcohol == min_al)
+
+min_al_indx
+min_data <- wine[min_al_indx, ]
+min_class <- min_data$class
+min_class
+```
+
+The highest alcohol content belongs to class 1.
+
+Q3:How many of these wines have higher levels of magnesium than that?
+
+```{r}
+mg <- wine$Magnesium
+higher_mg <- which(mg > 114) 
+# higher_mg
+length(higher_mg)
+```
+
+26 wines have higher levels of magnesium.
+
+Q4: Within each class, how many wines have higher levels of magnesium than average German beer?
+
+```{r}
+
+higher_mg_data <- subset(wine, wine$Magnesium > 114)
+higher_mg_data
+
+a <- table(higher_mg_data$class)
+a
+```
+
+In Class 1, there are 15 wines have higher levels of magnesium than average German beer.
+
+In Class 2, there are 6 wines have higher levels of magnesium than average German beer.
+
+In Class 3, there are 5 wines have higher levels of magnesium than average German beer.
+
+```{r}
+
+higher_mg_data2 <- wine[higher_mg, ]
+higher_mg_class <- higher_mg_data2$class
+b <- table(higher_mg_class)
+b
+```
+
+part (d)
+
+Create a table identifying the average value of each variable, providing one row for the overall average, and one row per class with class averages.
+
+```{r}
+# average of each variable
+# ave_all <- apply(wine, 2, mean)
+# ave_all
+
+ave_all2 <- lapply(wine, mean)
+ave_all2
+
+# ave_all3 <- sapply(wine, mean)
+# ave_all3
+```
+
+```{r}
+aggregate(wine, list(wine$class), FUN=mean)
+# average for each class with each variable
+```
+
+part (e)
+
+Carry out a series of t-tests to examine whether the level of Ash differs across the three classes. Present the R output and interpret the results.
+
+```{r}
+Ash_1 <- wine$Ash[wine$class == 1]
+Ash_2 <- wine$Ash[wine$class == 2]
+Ash_3 <- wine$Ash[wine$class == 3]
+
+t_test_1_2 <- t.test(Ash_1, Ash_2)
+t_test_1_3 <- t.test(Ash_1, Ash_3)
+t_test_2_3 <- t.test(Ash_2, Ash_3)
+
+t_test_1_2
+t_test_1_3
+t_test_2_3
+```
+
+From R output, we can get: t-test between class 1 & 2 is not significant, t-test between class 2 & 3 is not significant. However, for class 1 & 3, there is true difference between two groups.
+
+## Problem 2 Perfect Powers
+
+part (a)
+
+```{r}
+isPerfectPower <- function(n, p){
+  if (n < 1 || p < 2){
+    return(list(isPerfect = FALSE, root = NA))
+  }
+  
+  r = 2
+  while(r^p <= n){
+    if (r^p == n){
+      return(list(isPerfect = TRUE, root = r))
+    }
+    r = r+1
+  }
+  
+  return(list(isPerfect = FALSE, root = NA))
+}
+
+# a <- isPerfectPower(27, 3)
+# as.numeric(a)
+as.numeric(isPerfectPower(27,3)[2])
+```
+
+```{r}
+findRootPower <- function(n){
+   r = FALSE
+  for (i in 2:n){
+    if(isPerfectPower(n,i)[1] == TRUE){
+      b = as.numeric(isPerfectPower(n,i)[2])
+      r = TRUE
+      # print(paste(n, "=", i, "^", b))
+      break
+    }
+    
+  }
+  
+  if (r == TRUE){
+    return(print(paste(n, "=", b, "^", i)))
+  }
+  else{
+    return(FALSE)
+  }
+}
+findRootPower(27)
+findRootPower(13060694016)
+findRootPower(7776)
+findRootPower(170859375)
+findRootPower(58247422)
+findRootPower(94143178827)
+```
+
+## Problem 3 ChatGPT
+
+part (a)
+
+Answer from ChatGPT :
+
+Here are two R functions that you can use for simulating a round of 5-card stud poker:
+
+1.  The first function, **`getPokerHandName`**, takes a vector of suits and a vector of ranks representing a 5-card hand and returns the name of the hand based on standard poker hand rankings.
+
+2.  The second function, **`simulatePokerRound`**, simulates dealing cards to a specified number of players and uses the first function to display the names of the hands.
+
+```{r}
+# Function to get the name of a poker hand
+getPokerHandName <- function(suits, ranks) {
+  # Check for flush (all cards have the same suit)
+  is_flush <- length(unique(suits)) == 1
+  
+  # Check for straight (consecutive ranks)
+  is_straight <- length(unique(ranks)) == 5 && max(ranks) - min(ranks) == 4
+  
+  # Count rank occurrences
+  rank_counts <- table(ranks)
+  
+  # Check for four of a kind
+  is_four_of_a_kind <- any(rank_counts == 4)
+  
+  # Check for full house (three of a kind and a pair)
+  is_full_house <- any(rank_counts == 3) && any(rank_counts == 2)
+  
+  # Check for three of a kind
+  is_three_of_a_kind <- any(rank_counts == 3)
+  
+  # Check for two pairs
+  is_two_pair <- sum(rank_counts == 2) == 2
+  
+  # Check for one pair
+  is_one_pair <- sum(rank_counts == 2) == 1
+  
+  # Determine the hand name
+  if (is_flush && is_straight) return("Straight Flush")
+  if (is_four_of_a_kind) return("Four of a Kind")
+  if (is_full_house) return("Full House")
+  if (is_flush) return("Flush")
+  if (is_straight) return("Straight")
+  if (is_three_of_a_kind) return("Three of a Kind")
+  if (is_two_pair) return("Two Pair")
+  if (is_one_pair) return("One Pair")
+  else  return("High Card")
+}
+
+# Function to simulate a round of poker
+simulatePokerRound <- function(num_players) {
+  # Define the deck of cards
+  suits <- rep(c("Hearts", "Diamonds", "Clubs", "Spades"), each = 13)
+  
+  # ranks <- rep(2:10, 4)
+  # ranks <- c(ranks, "Jack", "Queen", "King", "Ace")
+  
+  ranks <- rep(2:14, 4)
+  #ranks_2 <- rep(c("Jack", "Queen", "King", "Ace"), 4) # Modifed
+  #ranks <- c(ranks_1, ranks_2) # Modified
+  print(ranks)
+  # Create a deck of cards
+  deck <- data.frame(Suit = suits, Rank = ranks)
+  
+  # Shuffle the deck
+  shuffle_deck <- deck[sample(nrow(deck)), ]
+  
+  # Deal cards to players
+  hands <- vector("list", length = num_players)
+  for (i in 1:num_players) {
+    hands[[i]] <- shuffle_deck[((i - 1) * 5 + 1):(i * 5), ]
+  }
+  
+  # Display hands and their names
+  for (i in 1:num_players) {
+    cat("Player", i, "Hand:\n")
+    print(hands[[i]])
+    cat("Hand Name:", getPokerHandName(hands[[i]]$Suit, hands[[i]]$Rank), "\n\n")
+  }
+}
+
+
+```
+
+```{r}
+# Simulate a round of poker with 4 players
+simulatePokerRound(4)
+```
+
+You can call the **`simulatePokerRound`** function with the number of players you want to simulate for. It will display each player's hand and the name of their hand based on the **`getPokerHandName`** function.
+
+part (d)
+
+-   Are the inputs and outputs as described above?
+
+    Yes, inputs "num_players" is the number of players, and the output is each player with their 5 cards of each player.
+
+-   Are the hands valid (e.g. real cards, no duplicates, right number)?
+
+    Yes, I set suits \<- rep(c("Hearts", "Diamonds", "Clubs", "Spades"), each = 13) , ranks \<- rep(2:14, 4). Therefore，we can get every 52 cards without duplicates.
+
+-   Are the names of the hands correct? (See [here](https://www.cardplayer.com/rules-of-poker/hand-rankings) if you're not familiar with poker hands.)
+
+    Yes, from the code, if there are five cards in a sequence, all in the same suit, it will return "Straight Flush", if one player gets five cards that all four cards of the same rank, then it will return "Four of a Kind" ect. which is same from the website instruction.
+
+-   Does it ensure no duplicates in cards across hands? What happens if you ask for more than 10 hands to be dealt (as there are only 52 cards in a standard deck)?
+
+```{r}
+# check 11 players:
+simulatePokerRound(11)
+```
+
+For the 11th player, this player only have two cards, because we set the total number of the card is 52, 11\*5 = 55\>52, therefore, the 11th player don't have 5 cards in hand. The maximum number of player is 10.
+
+If you find it is producing inaccurate results explain the following for each problem:
+
+1.  What the error is.
+
+    Error in data.frame(Suit = suits, Rank = ranks) : arguments imply differing number of rows: 52, 40
+
+2.  What is causing the error,
+
+    ```{r}
+    # num. suits is not euqal to num.ranks, both rank and suit should have 52 cards
+      suits <- rep(c("Hearts", "Diamonds", "Clubs", "Spades"), each = 13)
+      # num. suits = 52
+      ranks <- rep(2:10, 4)
+      ranks <- c(ranks, "Jack", "Queen", "King", "Ace")
+      # num. suits = 40
+    ```
