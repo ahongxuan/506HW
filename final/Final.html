@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Final 506</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Final_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Final_files/libs/quarto-html/quarto.js"></script>
+<script src="Final_files/libs/quarto-html/popper.min.js"></script>
+<script src="Final_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Final_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Final_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Final_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Final_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Final_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Final_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Final 506</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="sas-process" class="level3">
+<h3 class="anchored" data-anchor-id="sas-process">SAS process</h3>
+<pre><code>%let in_path = ~/Final/;
+%let out_path = ~/Final/;
+
+libname in_lib "&amp;in_path.";
+libname out_lib "&amp;out_path.";
+
+data cbecs;
+    set in_lib.cbecs2018_final_public_20221205;
+
+run;
+
+
+proc sql;
+    create table final_cbecs as
+    select NFLOOR,WKHRS, MFBTU, SQFT, WLCNS, PBA, REGION
+    from cbecs; 
+quit;
+run;
+proc export DATA=final_cbecs
+    OUTFILE="~/Final/final_cbecs2.csv"
+    dbms = dlm
+    replace;
+    delimiter=",";
+RUN;</code></pre>
+<p>R process</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/an/Documents/Umich/stats 506/final_cbecs.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Main heating equipment: 1, Electric; 2,Natural gas, other NA, omit</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>MAINHT <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>MAINHT <span class="sc">&gt;=</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>MAINHT <span class="sc">&lt;=</span> <span class="dv">8</span>, <span class="dv">1</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">ifelse</span>(data<span class="sc">$</span>MAINHT <span class="sc">&gt;=</span> <span class="dv">9</span> <span class="sc">&amp;</span> data<span class="sc">$</span>MAINHT <span class="sc">&lt;=</span> <span class="dv">15</span>, <span class="dv">2</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                   <span class="cn">NA</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 97=Withheld to protect confidentiality remove</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># data$OWNTYPE == 97 -&gt; a</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># table(a) -&gt; 82 TRUE, 5580 FALSE</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>NFLOOR <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>NFLOOR <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">994</span>,<span class="dv">995</span>), <span class="cn">NA</span>, data<span class="sc">$</span>NFLOOR)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>PBA <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>PBA)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>SQFTC <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(data<span class="sc">$</span>SQFTC)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>NFLOOR <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(data<span class="sc">$</span>NFLOOR)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>YRCONC <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>YRCONC)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>WKHRSC <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(data<span class="sc">$</span>WKHRSC)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>OWNTYPE <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>OWNTYPE)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>MAINHT <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data<span class="sc">$</span>MAINHT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> SQFTC, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> NFLOOR, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> YRCONC, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> WKHRSC, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> OWNTYPE, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> PBA, <span class="at">fill =</span> MAINHT)) <span class="sc">+</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Final_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">glm</span>(MAINHT <span class="sc">~</span> PBA <span class="sc">+</span> SQFTC <span class="sc">+</span> NFLOOR <span class="sc">+</span> YRCONC <span class="sc">+</span> WKHRSC <span class="sc">+</span> OWNTYPE,<span class="at">family =</span> <span class="st">"binomial"</span>, <span class="at">data =</span> data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = MAINHT ~ PBA + SQFTC + NFLOOR + YRCONC + WKHRSC + 
+    OWNTYPE, family = "binomial", data = data)
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  0.074995   0.377864   0.198 0.842677    
+PBA2        -0.510873   0.338841  -1.508 0.131630    
+PBA4        -0.515043   0.564792  -0.912 0.361813    
+PBA5        -0.096578   0.346834  -0.278 0.780661    
+PBA6         0.347777   0.431311   0.806 0.420055    
+PBA7         0.781495   0.508188   1.538 0.124096    
+PBA8        -0.229106   0.367694  -0.623 0.533226    
+PBA11       -1.290456   0.612007  -2.109 0.034982 *  
+PBA12       -0.608694   0.405702  -1.500 0.133525    
+PBA13       -0.133485   0.356653  -0.374 0.708202    
+PBA14       -0.398617   0.352451  -1.131 0.258061    
+PBA15       -0.118488   0.375136  -0.316 0.752115    
+PBA16        0.870532   0.463589   1.878 0.060407 .  
+PBA17       -0.747756   0.404896  -1.847 0.064778 .  
+PBA18       -1.317661   0.377782  -3.488 0.000487 ***
+PBA23       -0.272884   0.367855  -0.742 0.458194    
+PBA24       -1.450126   0.511114  -2.837 0.004551 ** 
+PBA25        0.166960   0.362799   0.460 0.645373    
+PBA26        0.218183   0.363419   0.600 0.548265    
+PBA91       -0.005341   0.460015  -0.012 0.990736    
+SQFTC        0.224374   0.022299  10.062  &lt; 2e-16 ***
+NFLOOR      -0.057459   0.025097  -2.289 0.022051 *  
+YRCONC3     -0.052409   0.176070  -0.298 0.765961    
+YRCONC4     -0.125726   0.156973  -0.801 0.423167    
+YRCONC5     -0.574598   0.147514  -3.895 9.81e-05 ***
+YRCONC6     -0.891182   0.143029  -6.231 4.64e-10 ***
+YRCONC7     -0.699314   0.143760  -4.864 1.15e-06 ***
+YRCONC8     -0.772328   0.136969  -5.639 1.71e-08 ***
+YRCONC9     -0.941847   0.167454  -5.625 1.86e-08 ***
+WKHRSC       0.030083   0.026839   1.121 0.262345    
+OWNTYPE2    -0.001089   0.135100  -0.008 0.993569    
+OWNTYPE3     0.019722   0.144679   0.136 0.891575    
+OWNTYPE4     0.728439   0.248887   2.927 0.003425 ** 
+OWNTYPE5     0.439016   0.179619   2.444 0.014519 *  
+OWNTYPE6     1.243457   0.391388   3.177 0.001488 ** 
+OWNTYPE7     1.331661   1.103708   1.207 0.227612    
+OWNTYPE8     0.228659   0.285878   0.800 0.423798    
+OWNTYPE9     0.424842   0.194102   2.189 0.028615 *  
+OWNTYPE10    0.589383   0.175521   3.358 0.000785 ***
+OWNTYPE97   -0.473849   0.498333  -0.951 0.341671    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6109.3  on 4695  degrees of freedom
+Residual deviance: 5620.8  on 4656  degrees of freedom
+AIC: 5700.8
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="interpretation" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation"><strong>Interpretation</strong></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(model, <span class="st">"YRCONC"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>emm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> YRCONC emmean    SE  df asymp.LCL asymp.UCL
+ 2       1.442 0.168 Inf     1.114     1.771
+ 3       1.390 0.181 Inf     1.035     1.745
+ 4       1.317 0.159 Inf     1.005     1.629
+ 5       0.868 0.149 Inf     0.575     1.161
+ 6       0.551 0.146 Inf     0.266     0.837
+ 7       0.743 0.146 Inf     0.457     1.030
+ 8       0.670 0.139 Inf     0.397     0.943
+ 9       0.501 0.167 Inf     0.174     0.827
+
+Results are averaged over the levels of: PBA, OWNTYPE 
+Results are given on the logit (not the response) scale. 
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>probs <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">summary</span>(emm, <span class="at">type =</span> <span class="st">"response"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>pairs_results <span class="ot">&lt;-</span> <span class="fu">pairs</span>(emm)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(pairs_results, <span class="at">type =</span> <span class="st">"response"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast          odds.ratio     SE  df null z.ratio p.value
+ YRCONC2 / YRCONC3      1.054 0.1855 Inf    1   0.298  1.0000
+ YRCONC2 / YRCONC4      1.134 0.1780 Inf    1   0.801  0.9931
+ YRCONC2 / YRCONC5      1.776 0.2620 Inf    1   3.895  0.0025
+ YRCONC2 / YRCONC6      2.438 0.3487 Inf    1   6.231  &lt;.0001
+ YRCONC2 / YRCONC7      2.012 0.2893 Inf    1   4.864  &lt;.0001
+ YRCONC2 / YRCONC8      2.165 0.2965 Inf    1   5.639  &lt;.0001
+ YRCONC2 / YRCONC9      2.565 0.4295 Inf    1   5.625  &lt;.0001
+ YRCONC3 / YRCONC4      1.076 0.1815 Inf    1   0.435  0.9999
+ YRCONC3 / YRCONC5      1.686 0.2697 Inf    1   3.264  0.0244
+ YRCONC3 / YRCONC6      2.314 0.3619 Inf    1   5.362  &lt;.0001
+ YRCONC3 / YRCONC7      1.910 0.2981 Inf    1   4.144  0.0009
+ YRCONC3 / YRCONC8      2.054 0.3082 Inf    1   4.799  &lt;.0001
+ YRCONC3 / YRCONC9      2.434 0.4336 Inf    1   4.993  &lt;.0001
+ YRCONC4 / YRCONC5      1.567 0.2159 Inf    1   3.256  0.0250
+ YRCONC4 / YRCONC6      2.150 0.2864 Inf    1   5.746  &lt;.0001
+ YRCONC4 / YRCONC7      1.775 0.2362 Inf    1   4.310  0.0004
+ YRCONC4 / YRCONC8      1.909 0.2402 Inf    1   5.139  &lt;.0001
+ YRCONC4 / YRCONC9      2.262 0.3578 Inf    1   5.158  &lt;.0001
+ YRCONC5 / YRCONC6      1.372 0.1650 Inf    1   2.633  0.1440
+ YRCONC5 / YRCONC7      1.133 0.1362 Inf    1   1.037  0.9689
+ YRCONC5 / YRCONC8      1.219 0.1372 Inf    1   1.756  0.6498
+ YRCONC5 / YRCONC9      1.444 0.2129 Inf    1   2.491  0.1992
+ YRCONC6 / YRCONC7      0.825 0.0940 Inf    1  -1.685  0.6970
+ YRCONC6 / YRCONC8      0.888 0.0936 Inf    1  -1.127  0.9510
+ YRCONC6 / YRCONC9      1.052 0.1495 Inf    1   0.356  1.0000
+ YRCONC7 / YRCONC8      1.076 0.1123 Inf    1   0.699  0.9970
+ YRCONC7 / YRCONC9      1.274 0.1808 Inf    1   1.710  0.6808
+ YRCONC8 / YRCONC9      1.185 0.1596 Inf    1   1.259  0.9139
+
+Results are averaged over the levels of: PBA, OWNTYPE 
+P value adjustment: tukey method for comparing a family of 8 estimates 
+Tests are performed on the log odds ratio scale </code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
